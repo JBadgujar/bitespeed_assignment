@@ -50,6 +50,8 @@ const ContactSchema = new Schema<ContactType>(
     }
 )
 
+ContactSchema.index({ id: 1 }, { unique: true });
+
 const Contact = mongoose.model<ContactType>("Contact",ContactSchema);
 
 export default Contact;

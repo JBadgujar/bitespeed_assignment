@@ -29,27 +29,29 @@ app.use((req: Request, res: Response, next: express.NextFunction): any => {
     next();
 });
 
-let idCounter = 1;
+
 
 app.post('/identify', async (req: Request, res: Response) : Promise<any> => {
-  const { email, phoneNumber } = req.body;
+    const { email, phoneNumber } = req.body;
+    const latestContact = await Contact.findOne().sort({ id: -1 });
+    const nextId = latestContact ? latestContact.id + 1 : 1;
 
-  if (!email && !phoneNumber) {
-    return res.status(400).json({ error: 'At least one of email or phoneNumber is required' });
-  }
+    if (!email && !phoneNumber) {
+        return res.status(400).json({ error: 'At least one of email or phoneNumber is required' });
+    }
 
-  const existingContacts = await Contact.find({
-    $or: [{ email }, { phoneNumber }],
-  }).sort({ createdAt: 1 });
+    const existingContacts = await Contact.find({
+        $or: [{ email }, { phoneNumber }],
+    }).sort({ createdAt: 1 });
 
-  if (existingContacts.length === 0) {
-    const newContact = await Contact.create({
-      id: idCounter++,
-      email,
-      phoneNumber,
-      linkedPrecedence: 'primary',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    if (existingContacts.length === 0) {
+        const newContact = await Contact.create({
+        id: nextId,
+        email,
+        phoneNumber,
+        linkedPrecedence: 'primary',
+        createdAt: new Date(),
+        updatedAt: new Date(),
     });
 
     return res.status(200).json({
@@ -87,7 +89,7 @@ app.post('/identify', async (req: Request, res: Response) : Promise<any> => {
 
   if (!alreadyKnownEmail || !alreadyKnownPhone) {
     const newSecondary = await Contact.create({
-      id: idCounter++,
+      id: nextId,
       email,
       phoneNumber,
       linkedPrecedence: 'secondary',
